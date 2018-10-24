@@ -1,0 +1,47 @@
+<html>
+    <head>
+        <title>Convert to Sterling Coins</title>
+        <!--
+        <script type="text/javascript" src="future-seperate-file.js"></script>
+        <link rel="stylesheet" type="text/css" href="future-seperate-file.css">
+        -->
+
+        <style type="text/css">
+            .msg {
+                font-weight: bold;
+                font-size: 1.2rem;
+            }
+            .errors {
+                color: red;
+                font-style: italic;
+                font-weight: normal;
+            }
+        </style>
+        
+        <script type="text/javascript">
+            function convToCoins(pence) {
+
+            }
+
+            function convToPence() {
+                alert( 'And ' + chkMoney(document.getElementById('money').value) );
+            }
+            function chkMoney(money) {
+                //check if valid input
+                if (money === '' || money === null || money === undefined) return 0;
+
+                //check if valid format
+                //integers only; only £/pound/gbp/p/pence allowed
+
+                return 1;
+            }
+        </script>
+
+    </head>
+    <body>
+        <p>Hi</p>
+        <input type="text" id="money">
+        <input type="submit" value="submit" onclick="convToPence()">
+        <p class="msg"></p>
+    </body>
+</html>
