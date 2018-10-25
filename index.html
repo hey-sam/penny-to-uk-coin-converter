@@ -19,21 +19,50 @@
         </style>
         
         <script type="text/javascript">
+            var maxPence = 999999999; //arbitrary max, based on noticable browser lag
+
+            //accepts pence as int or float and returns array of coins
             function convToCoins(pence) {
+                var avaiCoins = [
+                    {label:'£2', value: 200, amount: 0},
+                    {label:'£1', value: 100, amount: 0},
+                    {label:'50p', value: 50, amount: 0},
+                    {label:'20p', value: 20, amount: 0},
+                    {label:'2p', value: 2, amount: 0},
+                    {label:'1p', value: 1, amount: 0},
+                ];
+                var remaining = pence;
+                var i = 0;
 
+                while(remaining > 0 && i < avaiCoins.length) {
+                    if (remaining - avaiCoins[i].value >= 0) {
+                        remaining -= avaiCoins[i].value;
+                        avaiCoins[i].amount++;
+                    }
+                    else i++;
+                }
+                return avaiCoins;
             }
 
-            function convToPence() {
-                alert( 'And ' + chkMoney(document.getElementById('money').value) );
+            function getCoins() {
+                var money = cleanMoney(document.getElementById('money').value);
+                var coins = convToCoins(money);
+                var txtCoins = '';
+
+                for(var i = 0; i < coins.length; i++) {
+                    txtCoins += coins[i].label + '*' + coins[i].amount + ', ';
+                }
+
+
+                document.getElementsByClassName('msg')[0].innerHTML = 'Result ' + txtCoins;
             }
-            function chkMoney(money) {
-                //check if valid input
-                if (money === '' || money === null || money === undefined) return 0;
+            function cleanMoney(money) {
+                if (money) {
+                    //allow decimals; only £/pound/gbp/p/pence allowed
+                    return Math.round(money);
+                }
 
-                //check if valid format
-                //integers only; only £/pound/gbp/p/pence allowed
-
-                return 1;
+                return 0;
             }
         </script>
 
@@ -41,7 +70,7 @@
     <body>
         <p>Hi</p>
         <input type="text" id="money">
-        <input type="submit" value="submit" onclick="convToPence()">
+        <input type="submit" value="submit" onclick="getPence()">
         <p class="msg"></p>
     </body>
 </html>
