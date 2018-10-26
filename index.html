@@ -44,25 +44,76 @@
                 return avaiCoins;
             }
 
+            function chkMoneyFormat(money) {
+                //regex built and tested using https://regexr.com/41vbj
+                var regExOut, fullRegEx, regEx1, regEx2, regEx3;
+
+                //first part is '£' + 'int' || (int)
+                regEx1 = '(^([£]) \\d+ | ^\\d+)';
+                //second part is '.' + 'int' + 'p' || '.' + 'p' || '.' + 'int' || 'p' || ''
+                regEx2 = '([\\.] \\d+ [p] | [\\.] [p] | [\\.] \\d+ | [p] | ())';
+                //dont capture, if any more chars found
+                regEx3 = '(?!.)';
+                //(^([£])\\d+|^\\d+)([\\.]\\d+[p]|[\\.][p]|[\\.]\\d+|[p]|())(?!.)
+                fullRegEx = regEx1 + regEx2 + regEx3;
+                fullRegEx = fullRegEx.replace(/\s/g,'');//remove all whitespaces
+                fullRegEx = new RegExp(fullRegEx, ['gi']);
+
+                regExOut = fullRegEx.exec(money);
+                if (regExOut !== null) return true;
+
+                return false;  
+            }
+
+            //extract money from text and returns pence (int) or error (string)
+            function cleanMoney(money) {
+                var trimMoney, cleanedMoney;
+
+                if (!money) return 'Empty input';
+
+                trimMoney = money.trim();
+                cleanedMoney = trimMoney;
+
+                //strip away legal text
+                cleanedMoney = cleanedMoney.replace('£', '');
+                cleanedMoney = cleanedMoney.replace('p', '');
+                cleanedMoney = cleanedMoney.replace(',', '');
+                cleanedMoney = parseFloat(cleanedMoney);
+
+                if (isNaN(cleanedMoney)) return 'Illegal currency';
+
+                //Check format (Should probably use RegEx)
+                //£ at start or p at end
+                if (!chkMoneyFormat(trimMoney)) return 'Illegal currency or format';
+
+                //return pence
+                if (trimMoney[0] === '£' || trimMoney[trimMoney.length - 1] !== 'p') {
+                    cleanedMoney *= 100;
+                }
+
+                if (cleanedMoney > maxPence) return 'Chosen amount is too large';
+
+                return Math.round(cleanedMoney);
+            }
+
             function getCoins() {
+                var output = document.getElementsByClassName('msg')[0];
                 var money = cleanMoney(document.getElementById('money').value);
                 var coins = convToCoins(money);
                 var txtCoins = '';
+
+                output.classList.remove('errors');
+                if (typeof(money) === 'string') {
+                    output.innerHTML = money;
+                    output.classList.add('errors');
+                    return;
+                }
 
                 for(var i = 0; i < coins.length; i++) {
                     txtCoins += coins[i].label + '*' + coins[i].amount + ', ';
                 }
 
-
-                document.getElementsByClassName('msg')[0].innerHTML = 'Result ' + txtCoins;
-            }
-            function cleanMoney(money) {
-                if (money) {
-                    //allow decimals; only £/pound/gbp/p/pence allowed
-                    return Math.round(money);
-                }
-
-                return 0;
+                output.innerHTML = 'Result ' + txtCoins;
             }
         </script>
 
