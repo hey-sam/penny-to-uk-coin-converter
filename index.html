@@ -7,22 +7,11 @@
         -->
 
         <style type="text/css">
-            .msg {
-                font-weight: bold;
-                font-size: 1.2rem;
-            }
-            .errors {
-                color: red;
-                font-style: italic;
-                font-weight: normal;
-            }
-        </style>
-        
-        <script type="text/javascript">
-            var maxPence = 999999999; //arbitrary max, based on noticable browser lag
+            var maxPence = Number.MAX_SAFE_INTEGER; //max safe js int
 
             //accepts pence as int or float and returns array of coins
-            function convToCoins(pence) {
+            //performance lag when too large number is used, due to loops
+            function convToCoinsOld(pence) {
                 var avaiCoins = [
                     {label:'£2', value: 200, amount: 0},
                     {label:'£1', value: 100, amount: 0},
@@ -44,6 +33,32 @@
                 return avaiCoins;
             }
 
+            //accepts pence as int or float and returns array of coins
+            //more efficient, as amount is calculated immediately
+            function convToCoins(pence) {
+                var avaiCoins = [
+                    {label:'£2', value: 200, amount: 0},
+                    {label:'£1', value: 100, amount: 0},
+                    {label:'50p', value: 50, amount: 0},
+                    {label:'20p', value: 20, amount: 0},
+                    {label:'2p', value: 2, amount: 0},
+                    {label:'1p', value: 1, amount: 0},
+                ];
+                var remaining = pence;
+                var i;
+
+                //loop through available coins and calc no of coins
+                for (i = 0;i < avaiCoins.length; i++) {
+                    if (remaining - avaiCoins[i].value >= 0) {
+                        avaiCoins[i].amount = parseInt(remaining / avaiCoins[i].value);
+                        remaining -= avaiCoins[i].value * avaiCoins[i].amount;
+                    }
+                    else i++;
+                }
+                return avaiCoins;
+            }
+
+            //verify if user input is of legal format; returns true/false
             function chkMoneyFormat(money) {
                 //regex built and tested using https://regexr.com/41vbj
                 var regExOut, fullRegEx, regEx1, regEx2, regEx3;
@@ -80,6 +95,7 @@
                 cleanedMoney = cleanedMoney.replace(',', '');
                 cleanedMoney = parseFloat(cleanedMoney);
 
+                //if value is not is not a float, illegal char have been used
                 if (isNaN(cleanedMoney)) return 'Illegal currency';
 
                 //Check format (Should probably use RegEx)
@@ -102,6 +118,11 @@
                 var coins = convToCoins(money);
                 var txtCoins = '';
 
+                //unfocus input elems
+                document.getElementById('money').blur();
+                document.getElementById('btnConvert').blur();
+
+                //display err msg with css, if any errors
                 output.classList.remove('errors');
                 if (typeof(money) === 'string') {
                     output.innerHTML = money;
@@ -112,16 +133,40 @@
                 for(var i = 0; i < coins.length; i++) {
                     txtCoins += coins[i].label + '*' + coins[i].amount + ', ';
                 }
+                txtCoins = txtCoins.slice(0,-2);//remove trailing chars
+
 
                 output.innerHTML = 'Result ' + txtCoins;
             }
+
+            //listen for event for when dom is ready and exec init fcn
+            document.addEventListener('DOMContentLoaded', init, false);
+            function init() {
+                //add event listener to capture enter key
+                var input = document.getElementById('money');
+                input.addEventListener("keyup", function(event) {
+                  event.preventDefault();
+                  // keycode 13 = enter key
+                  if (event.keyCode === 13) {
+                    // Trigger button click
+                    document.getElementById("btnConvert").click();
+                  }
+                });
+            }            
         </script>
 
     </head>
     <body>
-        <p>Hi</p>
-        <input type="text" id="money">
-        <input type="submit" value="submit" onclick="getPence()">
-        <p class="msg"></p>
+        <div class="main">
+            <div>
+                <h2>Number to Sterling Coin Converter</h2>
+                <p>Input a sterling amount below and get it converted to the amount of coins it would be represented by</p>
+            </div>
+            <div>
+                <input type="text" id="money" value="£0.00" />
+                <input type="submit" id="btnConvert" value="Convert" onClick="getCoins()" />
+           </div>
+           <div><p class="msg">&nbsp</p></div>
+        </div>
     </body>
 </html>
